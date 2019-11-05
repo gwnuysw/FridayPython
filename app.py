@@ -2,6 +2,7 @@ from flask import Flask, escape, request
 import json, usefulMethods
 from usefulMethods import getSysNumber, responseHandler
 from tinydb import TinyDB, Query
+import sortfunc
 
 app = Flask(__name__)
 db = TinyDB('./questionFlow.json')
@@ -26,10 +27,11 @@ def watsonInput():
 	else:
 		trees[data['treeName']] = []
 		trees[data['treeName']].append(1)
-	
+	db.update({'trees':trees}, TREE.type=="json")
 	#현재 노드가 트리의 마지막 노드인 경우실행
 	if len(trees[data['treeName']]) - 1 == int(data['currentNode']):
 		#중간 이탈이 가장 많은 트리를 찾는다.
+		'''
 		hard = {}
 		for key in trees:
 			big = 0
@@ -40,7 +42,9 @@ def watsonInput():
 				if small > trees[key][key2]:
 					small = trees[key][key2]
 			hard[key] = big - small
+		'''
 		#가장 많이 검색한 트리를 찾는다.
+		'''
 		many = ''
 		temp = 0
 		for key in trees:
@@ -50,9 +54,23 @@ def watsonInput():
 		hardest = max(hard, key=hard.get)
 		print('hardest one',hardest)
 		print('many ', many)
+		'''
+		hardest = ''
+		many = ''
+		sortedAbortTree = sorted(trees.items(), key = sortfunc.treeGetAbort, reverse = True)
+		sortedManyTree = sorted(trees.items(), key = sortfunc.manySearch, reverse = True)
+		if data['treeName'] == sortedAbortTree[0][0]:
+			hardest = sortedAbortTree[1][0]
+		else:
+			hardest = sortedAbortTree[0][0]
+		if data['treeName'] == sortedManyTree[0][0]:
+			many = sortedManyTree[1][0]
+		else:
+			many = sortedManyTree[0][0]
 		#데이터 베이스 업데이트
-		db.update({'trees':trees}, TREE.type=="json")
 		j = json.dumps({'hardest':hardest,'manyask':many})
+		print(j)
+		print('what tha fack')
 		return json.loads(j)
 	else:
 		return {}
