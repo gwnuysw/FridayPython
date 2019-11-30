@@ -9,3 +9,5 @@ def treeGetAbort(tree):
     return big - small
 def manySearch(tree):
     return tree[1][0]
+def todaySearch(tree):
+    return tree[1]
